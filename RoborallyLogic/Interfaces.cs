@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace RoborallyLogic
 {
@@ -13,21 +14,42 @@ namespace RoborallyLogic
     bool IsOnMap(Coordinates coordinates);
     Robot GetRobotFromRobot(Position position, int wallPenetration = 0);
 
-    void AddRobot(Robot robot);
-    void RemoveRobot(Robot robot);
+    void Add(LogicObject logicObject);
+    void Remove(LogicObject logicObject);
 
-    void AddWall(Wall wall);
-    void RemoveWall(Wall wall);
+    //void AddRobot(Robot robot);
+    //void RemoveRobot(Robot robot);
 
-    void EnviromentMove();
-    void AddEnviromentalMove(IEnviromentMove enviromentMove);
-    void RemoveEnviromentalMove(IEnviromentMove enviromentMove);
+    //void AddWall(Wall wall);
+    //void RemoveWall(Wall wall);
+
+    //void EnviromentMove();
+    //void AddEnviromentalMove(IEnviroment enviromentMove);
+    //void RemoveEnviromentalMove(IEnviroment enviromentMove);
+
+    //void AddGoal(Goal goal);
+    //void RemoveGoal(Goal goal);
+    //void UpdateRobots();
+
+    Position GetFreePosition();
+  }
+
+  public interface IMapDraw
+  {
+    void Inicializace(int x, int y);
   }
 
   public interface IDraw
   {
-    ILogicMap LogicMap { get; set; }
-    void Draw();
+    void SynchronizacePosition();
+
+    void Add();
+    void Remove();
+  }
+
+  public interface IPosition
+  {
+    Position Position { get; }
   }
 
   public interface IWeapon
@@ -50,17 +72,5 @@ namespace RoborallyLogic
     void MoveLeft();
     void MoveDown();
     void MoveRight();
-  }
-
-  public interface IEnviromentMove
-  {
-    ILogicMap Map { get; set; }
-
-    Position Position { get; set; }
-    int X { get; }
-    int Y { get; }
-    Orientation Orientation { get; }
-
-    void Move(Robot robot);
   }
 }

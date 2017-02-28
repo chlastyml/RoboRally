@@ -39,6 +39,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbstractDraw.cs" />
+    <Compile Include="Enviroment.cs" />
+    <Compile Include="Goal.cs" />
+    <Compile Include="Instruction\Instruction.cs" />
+    <Compile Include="Instruction\RobotInstruction.cs" />
     <Compile Include="Line.cs" />
     <Compile Include="Weapons.cs" />
     <Compile Include="Coordinates.cs" />

@@ -27,5 +27,7 @@ namespace Roborallye
 
     public static Grid WallTemplate { get; set; }
     public static Grid Line { get; set; }
+    public static Grid GoalTemplate { get; set; }
+    public static Grid MainGrid { get; set; }
   }
 }

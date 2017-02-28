@@ -1,139 +1,81 @@
 ﻿using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using RoborallyLogic;
 
 namespace Roborallye
 {
   /// <summary>
-  /// Interaction logic for MainWindow.xaml
+  ///   Interaction logic for MainWindow.xaml
   /// </summary>
   public partial class MainWindow : Window
   {
-    private XamlMap map;
+    private bool ignoreEnvironment;
+    private Map map;
+    private Robot robot;
+    private int startLine = 2;
+    private bool ukroky;
 
     public MainWindow()
     {
       InitializeComponent();
+      GlobalSetting.MainGrid = MainGrid;
       GlobalSetting.Rectangle = MainRectangle;
       GlobalSetting.RobotTemplate = RobotTemplateGrid;
       GlobalSetting.WallTemplate = WallGrid;
       GlobalSetting.Line = LineGrid;
-
+      GlobalSetting.GoalTemplate = GoalGrid;
       Restart();
     }
 
-    private XamlRobot robot;
-    private bool ukroky = false;
-    private bool ignoreEnvironment = false;
-    private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    private void Window_KeyDown(object sender, KeyEventArgs e)
     {
       string command = string.Empty;
 
       switch (e.Key)
       {
         case Key.Enter:
-          Restart();
-          command = "RESTART";
+          command = Restart();
           break;
         case Key.Up:
-          if (ukroky)
-          {
-            robot.Move(Orientation.Up, ignoreEnvironment);
-            command = string.Format("{0} - MOVE UP", robot.Name);
-          }
-          else
-          {
-            robot.MoveForward();
-            command = string.Format("{0} - MOVE FORWARD", robot.Name);
-          }
+          command = Move(Orientation.Up);
           break;
         case Key.Left:
-          if (ukroky)
-          {
-            robot.Move(Orientation.Left, ignoreEnvironment);
-            command = string.Format("{0} - MOVE LEFT", robot.Name);
-          }
-          else
-          {
-            robot.TurnLeft();
-            command = string.Format("{0} - TURN LEFT", robot.Name);
-          }
+          command = Move(Orientation.Left);
           break;
         case Key.Right:
-          if (ukroky)
-          {
-            robot.Move(Orientation.Right, ignoreEnvironment);
-            command = string.Format("{0} - MOVE RIGHT", robot.Name);
-          }
-          else
-          {
-            robot.TurnRight();
-            command = string.Format("{0} - TURN RIGHT", robot.Name);
-          }
+          command = Move(Orientation.Right);
           break;
         case Key.Down:
-          if (ukroky)
-          {
-            robot.Move(Orientation.Down, ignoreEnvironment);
-            command = string.Format("{0} - MOVE DOWN", robot.Name);
-          }
-          else
-          {
-            robot.MoveBack();
-            command = string.Format("{0} - MOVE BACK", robot.Name);
-          }
+          command = Move(Orientation.Down);
           break;
         case Key.N:
-        {
           command = AddRobot();
           break;
-        }
-        case Key.A: // Wall
-        {
+        case Key.A:
           command = AddWall();
           break;
-        }
-        case Key.L: // Wall
-        {
+        case Key.L:
           command = AddLine();
           break;
-        }
-        case Key.H: // Enviroment
-        {
+        case Key.H:
           map.EnviromentMove();
           break;
-        }
-        case Key.S: // Walls
-        {
+        case Key.S:
           ukroky = !ukroky;
-
-          XamlWall wall;
-          if (ukroky)
-          {
-            Coordinates c = new Coordinates(2, 2);
-            wall = new XamlWall(c, Orientation.Right, GlobalSetting.WallTemplate.DeepCopy());
-          }
-          else
-          {
-            Coordinates c = new Coordinates(3, 2);
-            wall = new XamlWall(c, Orientation.Left, GlobalSetting.WallTemplate.DeepCopy());
-          }
-          map.AddWall(wall);
-
-          command = "NASRAT";
+          command = string.Format("Úkroky: {0}", ukroky);
           break;
-        }
         case Key.C:
           ukroky = !ukroky;
           break;
         case Key.V:
           ignoreEnvironment = !ignoreEnvironment;
+          command = string.Format("Ignorovat prostředí: {0}", ignoreEnvironment);
           break;
         case Key.Space:
           robot.Fire();
-          command = string.Format("{0} - FIRE", robot.Name);
+          command = string.Format("{0} - FIRE - {1}", robot.Name, robot.Weapon);
           break;
         case Key.Q:
           robot.Weapon = new BasicWeapon();
@@ -152,58 +94,92 @@ namespace Roborallye
           command = string.Format("{0} - Penetrator", robot.Name);
           break;
         case Key.Escape:
-          this.Close();
+          Close();
           return;
       }
-
       // TODO: Další fáze
+
       CommandTextBlock.Text = string.Format("{0}{1}{1}{2}", command, Environment.NewLine, map.GetRobotsStats());
     }
 
-    private int startLine = 2;
-    private string AddLine()
+    private string Move(Orientation orientation)
     {
-      XamlLine enviromentMove = new XamlLine(startLine, 5, Orientation.Right, GlobalSetting.Line.DeepCopy());
-      map.AddEnviromentalMove(enviromentMove);
-      
-      startLine++;
+      if (ukroky)
+      {
+        robot.Move(orientation, ignoreEnvironment);
+        return string.Format("{0} - MOVE {1}", robot.Name, orientation);
+      }
 
-      return string.Format("{0} - ADD LINE", enviromentMove);
+      switch (orientation)
+      {
+        case Orientation.Up:
+          robot.MoveForward();
+          return string.Format("{0} - MOVE FORWARD", robot.Name);
+        case Orientation.Left:
+          robot.TurnLeft();
+          return string.Format("{0} - TURN LEFT", robot.Name);
+        case Orientation.Right:
+          robot.TurnRight();
+          return string.Format("{0} - TURN RIGHT", robot.Name);
+        case Orientation.Down:
+          robot.MoveBack();
+          return string.Format("{0} - MOVE BACK", robot.Name);
+      }
+
+      throw new Exception();
     }
 
-    private void Restart()
+    private string AddLine()
+    {
+      Enviroment line = new Line(new Position(Orientation.Right, new Coordinates(startLine, 5)));
+      line.Draw = new XamlDraw(GlobalSetting.Line.DeepCopy(), line);
+      map.Add(line);
+
+      startLine++;
+
+      return string.Format("{0} - ADD LINE", line);
+    }
+
+    private string Restart()
     {
       MainGrid.Children.Clear();
-      map = new XamlMap(20, 20, MainGrid);
-      robot = new XamlRobot("Twonky", new Position(Orientation.Down, 5, 5), GlobalSetting.RobotTemplate.DeepCopy());
+      map = new Map(20, 20);
+      map.Draw = new MapXaml(MainGrid);
+
+      robot = RobotFactory.CreateRobot(map.GetFreePosition(), "Twonky", false); //new XamlRobot("Twonky", new Position(Orientation.Down, 5, 5), GlobalSetting.RobotTemplate.DeepCopy());
       robot.Player = true;
-      map.AddRobot(robot);
+      map.Add(robot);
+      return "RESTART";
     }
 
     private string AddWall()
     {
       Random nh = new Random();
       Coordinates c = new Coordinates(nh.Next(0, map.MaxX), nh.Next(0, map.MaxY));
-      XamlWall wall = new XamlWall(c, new Orientation().Random(), GlobalSetting.WallTemplate.DeepCopy());
+      Wall wall = new Wall(new Position(Orientation.Up.Random(), c));
+      wall.Draw = new XamlDraw(GlobalSetting.WallTemplate.DeepCopy(), wall);
+      //XamlWall wall = new Xaml(c, new Orientation().Random(), GlobalSetting.WallTemplate.DeepCopy());
       map.AddWall(wall);
 
-      return string.Format("{0} - ADD WALL", wall);      
+      return string.Format("{0} - ADD WALL", wall);
     }
 
     private string AddRobot()
     {
-      while (true)
-      {
-        Random nh = new Random();
-        Coordinates c = new Coordinates(nh.Next(0, map.MaxX), nh.Next(0, map.MaxY));
-        Robot rrr;
-        if (!map.TryGetRobot(c, out rrr))
-        {
-          Robot r = new XamlRobot(nh.Next(0, 100000).ToString(), new Position(Orientation.Up, c), GlobalSetting.RobotTemplate.DeepCopy(true));
-          map.AddRobot(r);
-          return string.Format("{0} - ADD ROBOT", r.Name);
-        }
-      }
+      Position c = map.GetFreePosition();
+      Robot r = RobotFactory.CreateRobot(c, "XXX");
+      map.Add(r);
+      return string.Format("{0} - ADD ROBOT", r.Name);
+    }
+  }
+
+  internal static class RobotFactory
+  {
+    public static Robot CreateRobot(Position position, string name, bool random = true)
+    {
+      Robot robot = new Robot(name, position);
+      robot.Draw = new XamlDraw(GlobalSetting.RobotTemplate.DeepCopy(random), robot);
+      return robot;
     }
   }
 }

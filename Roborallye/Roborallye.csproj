@@ -55,10 +55,10 @@
     </ApplicationDefinition>
     <Compile Include="Extensions.cs" />
     <Compile Include="GlobalSetting.cs" />
+    <Compile Include="XamlGoal.cs" />
     <Compile Include="XamlLine.cs" />
     <Compile Include="XamlMap.cs" />
     <Compile Include="XamlRobot.cs" />
-    <Compile Include="XamlWall.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

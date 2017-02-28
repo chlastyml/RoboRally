@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using RoborallyLogic;
@@ -17,67 +12,59 @@ namespace Roborallye
     void SynchronizacePosition();
   }
 
-  class XamlRobot : Robot
+  class XamlDraw : IDraw, IXamlDraw
   {
-    public Grid Template { get; set; }
-
-    public XamlRobot(string name, Position position, Grid template) : base(name, position)
+    public XamlDraw(Grid template, IPosition positionObject)
     {
+      PositionObject = positionObject;
       Template = template;
     }
 
+    public Grid Template { get; set; }
+    private IPosition PositionObject { get; set; }
     public void SynchronizacePosition()
     {
-      ActualizaceMargin();
-      ActualizaceOrientation();
+      if (Template != null && PositionObject != null)
+      {
+        ActualizaceMargin();
+        ActualizaceOrientation();
+      }
+    }
+
+    public void Add()
+    {
+      GlobalSetting.MainGrid.Children.Add(Template);
+      SynchronizacePosition();
+    }
+
+    public void Remove()
+    {
+      GlobalSetting.MainGrid.Children.Remove(Template);
     }
 
     private void ActualizaceMargin()
     {
-      Template.Margin = new Thickness(GlobalSetting.Rectangle.Width * X, GlobalSetting.Rectangle.Height * Y, 0, 0);
+      Template.Margin = new Thickness(GlobalSetting.Rectangle.Width * PositionObject.Position.Coordinates.X,
+        GlobalSetting.Rectangle.Height * PositionObject.Position.Coordinates.Y, 0, 0);
     }
 
     private void ActualizaceOrientation()
     {
-      switch (Orientation)
+      switch (PositionObject.Position.Orientation)
       {
-          case Orientation.Up:
+        case Orientation.Up:
           Template.LayoutTransform = new RotateTransform(-180);
           break;
-          case Orientation.Left:
+        case Orientation.Left:
           Template.LayoutTransform = new RotateTransform(90);
           break;
-          case Orientation.Down:
+        case Orientation.Down:
           Template.LayoutTransform = new RotateTransform(0);
           break;
-          case Orientation.Right:
+        case Orientation.Right:
           Template.LayoutTransform = new RotateTransform(-90);
           break;
       }
-    }
-
-    public override bool Move(Orientation orientation, bool ignoreEnvironment = false)
-    {
-      if (base.Move(orientation, ignoreEnvironment))
-      {
-        ActualizaceMargin();
-        return true;
-      }
-      return false;
-    }
-
-    public override void TurnLeft()
-    {
-      base.TurnLeft();
-
-      ActualizaceOrientation();
-    }
-
-    public override void TurnRight()
-    {
-      base.TurnRight();
-
-      ActualizaceOrientation();
     }
   }
 }
