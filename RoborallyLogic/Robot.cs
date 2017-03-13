@@ -2,15 +2,15 @@ namespace RoborallyLogic
 {
   public class Robot : LogicObject, IFireAble, IMoveAble
   {
-    public Robot(string name, Position position, bool player = false) : this(9, 3, name, position, player)
-    {
-      Player = player;
-      Name = name;
-      Position = position;
-      LifeTokenCount = 1;
-      DamagedCount = 9;
-      StartPosition = (Position) position.Clone();
-    }
+    //public Robot(string name, Position position, bool player = false) : this(9, 3, name, position, player)
+    //{
+    //  Player = player;
+    //  Name = name;
+    //  Position = position;
+    //  LifeTokenCount = 1;
+    //  DamagedCount = 9;
+    //  StartPosition = (Position) position.Clone();
+    //}
 
     public Robot(int damagedCount, int lifeTokenCount, string name, Position position, bool player = false) : base(position)
     {
@@ -19,6 +19,7 @@ namespace RoborallyLogic
       Name = name;
       Player = player;
       StartPosition = (Position) Position.Clone();
+      Weapon = new Ultimate();
     }
 
     public bool Player { get; set; }
@@ -37,7 +38,7 @@ namespace RoborallyLogic
 
     public override string ToString()
     {
-      return string.Format("{0}: {1} - {2}Ž {3} dmg", Name, Position, LifeTokenCount, DamagedCount);
+      return string.Format("{0,15}: {1,15} - {2,3} Ž {3,3} dmg", Name, Position, LifeTokenCount, DamagedCount);
     }
 
     #region Moves and orientation

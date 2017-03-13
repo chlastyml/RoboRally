@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using RoborallyLogic;
+using RoborallyLogic.Instruction;
 
 namespace Roborallye
 {
@@ -12,7 +14,7 @@ namespace Roborallye
   public partial class MainWindow : Window
   {
     private Map map;
-    private Robot robot;
+    private RobotInstruction robot;
     private int startLine = 2;
     private bool ukroky;
 
@@ -28,73 +30,140 @@ namespace Roborallye
       Restart();
     }
 
+    private bool _instrukce = false;
+
     private void Window_KeyDown(object sender, KeyEventArgs e)
     {
       string command = string.Empty;
 
+      // Obecne
       switch (e.Key)
       {
-        case Key.Enter:
-          command = Restart();
-          break;
-        case Key.Up:
-          command = Move(Orientation.Up);
-          break;
-        case Key.Left:
-          command = Move(Orientation.Left);
-          break;
-        case Key.Right:
-          command = Move(Orientation.Right);
-          break;
-        case Key.Down:
-          command = Move(Orientation.Down);
-          break;
-        case Key.A:
-          command = AddRobot();
-          break;
-        case Key.S:
-          command = AddWall();
-          break;
-        case Key.D:
-          command = AddTransportBelt();
-          break;
-        case Key.F:
-          command = AddTarget();
-          break;
-        case Key.H:
-          map.EnviromentMove();
-          break;
-        case Key.C:
-          ukroky = !ukroky;
-          command = string.Format("Úkroky: {0}", ukroky);
-          break;
-        case Key.Space:
-          robot.Fire();
-          command = string.Format("{0} - FIRE - {1}", robot.Name, robot.Weapon);
-          break;
-        case Key.Q:
-          robot.Weapon = new BasicWeapon();
-          command = string.Format("{0} - BasicWeapon", robot.Name);
-          break;
-        case Key.W:
-          robot.Weapon = new Cannon();
-          command = string.Format("{0} - Cannon", robot.Name);
-          break;
-        case Key.E:
-          robot.Weapon = new Ultimate();
-          command = string.Format("{0} - Ultimate", robot.Name);
-          break;
-        case Key.R:
-          robot.Weapon = new Penetrator();
-          command = string.Format("{0} - Penetrator", robot.Name);
-          break;
-        case Key.Escape:
-          Close();
-          return;
+        case Key.T: command = Restart(); break;
+        case Key.A: command = AddRobot(); break;
+        case Key.S: command = AddWall(); break;
+        case Key.D: command = AddTransportBelt(); break;
+        case Key.F: command = AddTarget(); break;
+        case Key.H: map.EnviromentMove(); break;
+        case Key.C: ukroky = !ukroky; command = string.Format("Úkroky: {0}", ukroky); break;
+        case Key.Q: robot.Weapon = new BasicWeapon(); command = string.Format("{0} - BasicWeapon", robot.Name); break;
+        case Key.W: robot.Weapon = new Cannon(); command = string.Format("{0} - Cannon", robot.Name); break;
+        case Key.E: robot.Weapon = new Ultimate(); command = string.Format("{0} - Ultimate", robot.Name); break;
+        case Key.R: robot.Weapon = new Penetrator(); command = string.Format("{0} - Penetrator", robot.Name); break;
+        case Key.Escape: if (_tread !=null && _tread.IsAlive) ExecuteInstructions(); Close(); return;
+        case Key.L: _instrukce = !_instrukce; command = "Instrukce : " + !_instrukce; break;
+        case Key.Enter: command = ExecuteInstructions(); break;
       }
+
+
+      if(_instrukce)
+        switch (e.Key)
+        {
+          case Key.Up: command = AddPlayerIstruction(Orientation.Up); break;
+          case Key.Left: command = AddPlayerIstruction(Orientation.Left); break;
+          case Key.Right: command = AddPlayerIstruction(Orientation.Right); break;
+          case Key.Down: command = AddPlayerIstruction(Orientation.Down); break;
+          case Key.P: command = ExecuteInstructionsAll(); break;
+        }
+      else
+        switch (e.Key)
+        {
+          case Key.Up: command = Move(Orientation.Up); break;
+          case Key.Left: command = Move(Orientation.Left); break;
+          case Key.Right: command = Move(Orientation.Right); break;
+          case Key.Down: command = Move(Orientation.Down); break;
+        }
+
       // TODO: Další fáze
 
       CommandTextBlock.Text = string.Format("{0}{1}{1}{2}", command, Environment.NewLine, map.GetRobotsStats());
+    }
+
+    private bool _instructTread = true;
+    private Thread _tread;
+
+    private string ExecuteInstructionsAll()
+    {
+      Thread tt = new Thread(ExecuteInstructionsPrivate);
+      tt.Start();
+
+      return "Vyhodnocení";
+    }
+
+
+    private string ExecuteInstructions()
+    {
+      if(_tread == null)
+        _tread = new Thread(ExecuteInstructionsNekonecny);
+      if (_instructTread)
+        _tread.Start();
+      else
+        _tread.Abort();
+
+      _instructTread = !_instructTread;
+      return "Vyhodnocení";
+    }
+
+    private void ExecuteInstructionsNekonecny()
+    {
+      while (true)
+      {
+        foreach (RobotInstruction robotInstruction in map.Robots.Cast<RobotInstruction>())
+        {
+          robotInstruction.CurrentInstructionNumber = 0;
+          robotInstruction.Instructions.Clear();
+          robotInstruction.AddInstruction(InstructionHelper.GetRandomInstruction());
+        }
+
+        map.DoNextInstruction();
+        map.EnviromentMove();
+        map.Fire();
+
+        CommandTextBlock.Dispatcher.Invoke(
+          () =>
+          {
+            CommandTextBlock.Text = string.Format("{0}", map.GetRobotsStats());
+          }
+          );
+
+        Thread.Sleep(500);
+      }
+    }
+
+    private void ExecuteInstructionsPrivate()
+    {
+      for (int i = 0; i < robot.Instructions.Count; i++)
+      {
+        map.DoNextInstruction();
+        map.EnviromentMove();
+        map.Fire();
+        Thread.Sleep(500);
+      }
+
+
+      foreach (RobotInstruction robotInstruction in map.Robots.Cast<RobotInstruction>())
+      {
+        robotInstruction.CurrentInstructionNumber = 0;
+        robot.Instructions.Clear();
+      }
+    }
+
+    private string AddPlayerIstruction(Orientation orientation)
+    {
+      foreach (RobotInstruction robotInstruction in map.Robots.Where(r => !r.Equals(robot)).Cast<RobotInstruction>())
+      {
+        robotInstruction.AddInstruction(InstructionHelper.GetRandomInstruction());
+      }
+
+      switch (orientation)
+      {
+          case Orientation.Up: robot.AddInstruction(new Move1Forward(1000)); return "Move1Forward";
+          case Orientation.Down: robot.AddInstruction(new MoveBack(1000)); return "MoveBack";
+          case Orientation.Left: robot.AddInstruction(new TurnLeft(1000)); return "TurnLeft";
+          case Orientation.Right: robot.AddInstruction(new TurnRight(1000)); return "TurnRight";
+      }
+
+      throw new NotSupportedException();
     }
 
     private string Move(Orientation orientation)
@@ -137,7 +206,6 @@ namespace Roborallye
     private string Restart()
     {
       MainGrid.Children.Clear();
-      //map = new Map(20, 20);
       map = new Map(GlobalSetting.MapSizeX, GlobalSetting.MapSizeY);
       map.Draw = new MapXaml(MainGrid);
 
@@ -174,9 +242,9 @@ namespace Roborallye
 
   internal static class Factory
   {
-    public static Robot CreateRobot(Position position, string name, bool randomColor = true)
+    public static RobotInstruction CreateRobot(Position position, string name, bool randomColor = true)
     {
-      Robot robot = new Robot(name, position);
+      RobotInstruction robot = new RobotInstruction(name, position);
       robot.Draw = new XamlDraw(GlobalSetting.RobotTemplate.DeepCopy(randomColor), robot);
       return robot;
     }

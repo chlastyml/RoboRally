@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using RoborallyLogic.Instruction;
 
 namespace RoborallyLogic
 {
@@ -20,7 +21,7 @@ namespace RoborallyLogic
       MaxY = y;
     }
 
-    protected IList<Robot> Robots { get; set; }
+    public IList<Robot> Robots { get; private set; }
     protected IList<Wall> Walls { get; set; }
     protected IList<Enviroment> Enviroments { get; set; }
     protected IList<Target> Targets { get; set; }
@@ -292,6 +293,28 @@ namespace RoborallyLogic
 
 
       return sb.ToString();
+    }
+
+    public void Fire()
+    {
+      IList<Robot> robotsCopy = new List<Robot>(Robots.Count);
+      foreach (Robot robot in Robots)
+      {
+        robotsCopy.Add(robot);
+      }
+
+      foreach (Robot robot in robotsCopy)
+      {
+        robot.Fire();
+      }
+    }
+
+    public void DoNextInstruction()
+    {
+      foreach (RobotInstruction robotInstruction in Robots.Cast<RobotInstruction>())
+      {
+        robotInstruction.DoNextInstruction();
+      }
     }
   }
 }

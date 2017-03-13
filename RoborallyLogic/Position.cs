@@ -43,7 +43,7 @@ namespace RoborallyLogic
 
     public override string ToString()
     {
-      return string.Format("{0} - {1}", Orientation, Coordinates);
+      return string.Format("{0,5} - {1}", Orientation, Coordinates);
     }
 
     public object Clone()

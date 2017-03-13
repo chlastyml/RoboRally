@@ -58,7 +58,7 @@
     <Compile Include="XamlTarget.cs" />
     <Compile Include="XamlTransportBelt.cs" />
     <Compile Include="XamlMap.cs" />
-    <Compile Include="XamlRobot.cs" />
+    <Compile Include="XamlDraw.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

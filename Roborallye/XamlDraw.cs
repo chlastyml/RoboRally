@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 using RoborallyLogic;
 using Orientation = RoborallyLogic.Orientation;
 
@@ -22,12 +23,18 @@ namespace Roborallye
 
     public Grid Template { get; set; }
     private IPosition PositionObject { get; set; }
+
     public void SynchronizacePosition()
     {
       if (Template != null && PositionObject != null)
       {
-        ActualizaceMargin();
-        ActualizaceOrientation();
+        Template.Dispatcher.Invoke(
+          () =>
+          {
+            ActualizaceMargin();
+            ActualizaceOrientation();
+          }
+          );
       }
     }
 
@@ -35,18 +42,33 @@ namespace Roborallye
     {
       if (isInsert)
       {
-        GlobalSetting.MainGrid.Children.Insert(GlobalSetting.MapSizeX * GlobalSetting.MapSizeY, Template);
+        GlobalSetting.MainGrid.Dispatcher.Invoke(
+          () =>
+          {
+            GlobalSetting.MainGrid.Children.Insert(GlobalSetting.MapSizeX * GlobalSetting.MapSizeY, Template);
+          }
+          );
       }
       else
       {
-        GlobalSetting.MainGrid.Children.Add(Template);
+        GlobalSetting.MainGrid.Dispatcher.Invoke(
+          () =>
+          {
+            GlobalSetting.MainGrid.Children.Add(Template);
+          }
+          );
       }
       SynchronizacePosition();
     }
 
     public void Remove()
     {
-      GlobalSetting.MainGrid.Children.Remove(Template);
+      GlobalSetting.MainGrid.Dispatcher.Invoke(
+          () =>
+          {
+            GlobalSetting.MainGrid.Children.Remove(Template);
+          }
+          );
     }
 
     private void ActualizaceMargin()
