@@ -9,7 +9,7 @@ namespace RoborallyLogic
   {
     public void Fire(ILogicMap map, Robot robot)
     {
-      Robot robotOnTarget = map.GetRobotFromRobot(robot.Position);
+      Robot robotOnTarget = map.GetRobotFromRobotOnLine(robot.Position);
       if (robotOnTarget != null)
       {
         robotOnTarget.TakeDamage(9);
@@ -21,7 +21,7 @@ namespace RoborallyLogic
   {
     public void Fire(ILogicMap map, Robot robot)
     {
-      Robot robotOnTarget = map.GetRobotFromRobot(robot.Position);
+      Robot robotOnTarget = map.GetRobotFromRobotOnLine(robot.Position);
       if (robotOnTarget != null)
       {
         robotOnTarget.TakeDamage();
@@ -33,7 +33,7 @@ namespace RoborallyLogic
   {
     public void Fire(ILogicMap map, Robot robot)
     {
-      Robot robotOnTarget = map.GetRobotFromRobot(robot.Position);
+      Robot robotOnTarget = map.GetRobotFromRobotOnLine(robot.Position);
       if (robotOnTarget != null)
       {
         robotOnTarget.TakeDamage();
@@ -46,7 +46,7 @@ namespace RoborallyLogic
   {
     public void Fire(ILogicMap map, Robot robot)
     {
-      Robot robotOnTarget = map.GetRobotFromRobot(robot.Position, 1);
+      Robot robotOnTarget = map.GetRobotFromRobotOnLine(robot.Position, 1);
       if (robotOnTarget != null)
       {
         robotOnTarget.TakeDamage(3);

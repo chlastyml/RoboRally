@@ -26,8 +26,17 @@ namespace Roborallye
     public static Grid RobotTemplate { get; set; }
 
     public static Grid WallTemplate { get; set; }
-    public static Grid Line { get; set; }
-    public static Grid GoalTemplate { get; set; }
+    public static Grid TransportBelt { get; set; }
+    public static Grid TargetTemplate { get; set; }
     public static Grid MainGrid { get; set; }
+
+    public static int MapSizeX
+    {
+      get { return 20; }
+    }
+    public static int MapSizeY
+    {
+      get { return 20; }
+    }
   }
 }

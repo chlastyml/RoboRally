@@ -1,6 +1,8 @@
+using System;
+
 namespace RoborallyLogic
 {
-  public class Position
+  public class Position : ICloneable
   {
     public Position()
     {
@@ -20,7 +22,7 @@ namespace RoborallyLogic
       Coordinates = new Coordinates(x, y);
     }
 
-    public Position(Orientation orientation, Coordinates coordinates)
+    public Position(Coordinates coordinates, Orientation orientation = Orientation.Up)
     {
       Orientation = orientation;
       Coordinates = coordinates;
@@ -28,13 +30,7 @@ namespace RoborallyLogic
 
     public Orientation Orientation { get; set; }
     public Coordinates Coordinates { get; set; }
-
-    public Position Copy()
-    {
-      Position result = new Position(Orientation, new Coordinates(Coordinates));
-      return result;
-    }
-
+    
     public Coordinates NextCoordinates()
     {
       return Coordinates.GetOneNearby(Orientation);
@@ -42,12 +38,18 @@ namespace RoborallyLogic
 
     public Position NextPosition()
     {
-      return new Position(Orientation, Coordinates.GetOneNearby(Orientation));
+      return new Position(Coordinates.GetOneNearby(Orientation), Orientation);
     }
 
     public override string ToString()
     {
       return string.Format("{0} - {1}", Orientation, Coordinates);
+    }
+
+    public object Clone()
+    {
+      Position result = new Position(new Coordinates(Coordinates), Orientation);
+      return result;
     }
   }
 }

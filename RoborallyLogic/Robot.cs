@@ -2,8 +2,6 @@ namespace RoborallyLogic
 {
   public class Robot : LogicObject, IFireAble, IMoveAble
   {
-    public bool Player { get; set; }
-
     public Robot(string name, Position position, bool player = false) : this(9, 3, name, position, player)
     {
       Player = player;
@@ -11,7 +9,7 @@ namespace RoborallyLogic
       Position = position;
       LifeTokenCount = 1;
       DamagedCount = 9;
-      StartPosition = position.Copy();
+      StartPosition = (Position) position.Clone();
     }
 
     public Robot(int damagedCount, int lifeTokenCount, string name, Position position, bool player = false) : base(position)
@@ -20,20 +18,30 @@ namespace RoborallyLogic
       LifeTokenCount = lifeTokenCount;
       Name = name;
       Player = player;
-      StartPosition = Position.Copy();
+      StartPosition = (Position) Position.Clone();
     }
 
+    public bool Player { get; set; }
     public bool IsMovedEnvironment { get; set; }
-    
-    public string Name { get; set; }
+    public string Name { get; private set; }
     public Position StartPosition { get; set; }
+    public int LifeTokenCount { get; private set; }
+    public int DamagedCount { get; private set; }
 
-    public int LifeTokenCount { get; set; }
-    public int DamagedCount { get; set; }
+    private bool IsAlive
+    {
+      get { return DamagedCount > 0; }
+    }
 
     public IWeapon Weapon { get; set; }
 
+    public override string ToString()
+    {
+      return string.Format("{0}: {1} - {2}Ž {3} dmg", Name, Position, LifeTokenCount, DamagedCount);
+    }
+
     #region Moves and orientation
+
     #region NONInstruction
 
     public void MoveUp()
@@ -51,7 +59,7 @@ namespace RoborallyLogic
       MoveForward();
       Position.Orientation = backup;
     }
-    
+
     public void MoveDown()
     {
       Orientation backup = Position.Orientation;
@@ -68,52 +76,50 @@ namespace RoborallyLogic
       Position.Orientation = backup;
     }
 
-    public virtual bool Move(Orientation orientation, int distance, bool ignoreEnvironment = false)
+    public virtual bool Move(Orientation orientation, int distance)
     {
       for (int i = 0; i < distance; i++)
       {
-        if (!Move(orientation, ignoreEnvironment))
+        if (!Move(orientation))
         {
           return false;
         }
       }
       return true;
     }
-    
-    public virtual bool Move(Orientation orientation, bool ignoreEnvironment = false)
-    {
-      Coordinates newCoordinates = Position.Coordinates.GetOneNearby(orientation);
-      //if (Position.Coordinates.Equals(newCoordinates))
-      //{
-      //  return false;
-      //}
 
-      if (Map.MovingRobot(newCoordinates, orientation, ignoreEnvironment))
+    public virtual bool Move(Orientation orientation, bool isEnviromental = false)
+    {
+      Map.UpdateRobots();
+
+      Coordinates newCoordinates = Position.Coordinates.GetOneNearby(orientation);
+
+      if (Map.MovingRobot(newCoordinates, orientation, isEnviromental))
       {
         Position.Coordinates = newCoordinates;
         SynchronizacePosition();
+        IsMovedEnvironment = isEnviromental;
         return true;
       }
       return false;
     }
-    #endregion
     
+    #endregion
+
     public void MoveForward(int distance = 1)
     {
       Move(Position.Orientation, distance);
-      //SynchronizacePosition();
     }
 
     public void MoveBack(int distance = 1)
     {
       Move(Position.Orientation.Oposite(), distance);
-      //SynchronizacePosition();
     }
 
     public virtual void TurnLeft()
     {
       if (Position.Orientation == 0)
-        Position.Orientation = (Orientation)3;
+        Position.Orientation = (Orientation) 3;
       else
         Position.Orientation--;
       SynchronizacePosition();
@@ -121,7 +127,7 @@ namespace RoborallyLogic
 
     public virtual void TurnRight()
     {
-      if (Position.Orientation == (Orientation)3)
+      if (Position.Orientation == (Orientation) 3)
         Position.Orientation = 0;
       else
         Position.Orientation++;
@@ -133,9 +139,11 @@ namespace RoborallyLogic
       Position.Orientation = Position.Orientation.Oposite();
       SynchronizacePosition();
     }
+
     #endregion
 
     #region Fire and damage
+
     public void Fire()
     {
       if (Weapon != null)
@@ -157,6 +165,7 @@ namespace RoborallyLogic
         TryRestart();
       }
     }
+
     #endregion
 
     #region Restart
@@ -177,20 +186,25 @@ namespace RoborallyLogic
 
     private void RestartPosition()
     {
-      Position = StartPosition.Copy();
-      SynchronizacePosition();
+      if (!Map.IsSomeRobotOnPosition(StartPosition.Coordinates))
+      {
+        Position = (Position)StartPosition.Clone();
+        SynchronizacePosition();
+      }
+
+      while (true)
+      {
+        Coordinates potencionalCoordinates = StartPosition.Coordinates.GetOneNearby(Helper.RandomOrientation);
+
+        if (!Map.IsSomeRobotOnPosition(potencionalCoordinates))
+        {
+          Position = new Position(potencionalCoordinates, StartPosition.Orientation);
+          SynchronizacePosition();
+          return;
+        }
+      }
     }
 
     #endregion
-
-    private bool IsAlive
-    {
-      get { return DamagedCount > 0; }
-    }
-
-    public override string ToString()
-    {
-      return string.Format("{0}: {1} - {2}Ž {3} dmg", Name, Position, LifeTokenCount, DamagedCount);
-    }
   }
 }

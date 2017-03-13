@@ -11,7 +11,6 @@ namespace Roborallye
   /// </summary>
   public partial class MainWindow : Window
   {
-    private bool ignoreEnvironment;
     private Map map;
     private Robot robot;
     private int startLine = 2;
@@ -24,8 +23,8 @@ namespace Roborallye
       GlobalSetting.Rectangle = MainRectangle;
       GlobalSetting.RobotTemplate = RobotTemplateGrid;
       GlobalSetting.WallTemplate = WallGrid;
-      GlobalSetting.Line = LineGrid;
-      GlobalSetting.GoalTemplate = GoalGrid;
+      GlobalSetting.TransportBelt = LineGrid;
+      GlobalSetting.TargetTemplate = TargetGrid;
       Restart();
     }
 
@@ -50,28 +49,24 @@ namespace Roborallye
         case Key.Down:
           command = Move(Orientation.Down);
           break;
-        case Key.N:
+        case Key.A:
           command = AddRobot();
           break;
-        case Key.A:
+        case Key.S:
           command = AddWall();
           break;
-        case Key.L:
-          command = AddLine();
+        case Key.D:
+          command = AddTransportBelt();
+          break;
+        case Key.F:
+          command = AddTarget();
           break;
         case Key.H:
           map.EnviromentMove();
           break;
-        case Key.S:
-          ukroky = !ukroky;
-          command = string.Format("Úkroky: {0}", ukroky);
-          break;
         case Key.C:
           ukroky = !ukroky;
-          break;
-        case Key.V:
-          ignoreEnvironment = !ignoreEnvironment;
-          command = string.Format("Ignorovat prostředí: {0}", ignoreEnvironment);
+          command = string.Format("Úkroky: {0}", ukroky);
           break;
         case Key.Space:
           robot.Fire();
@@ -106,7 +101,7 @@ namespace Roborallye
     {
       if (ukroky)
       {
-        robot.Move(orientation, ignoreEnvironment);
+        robot.Move(orientation);
         return string.Format("{0} - MOVE {1}", robot.Name, orientation);
       }
 
@@ -129,24 +124,24 @@ namespace Roborallye
       throw new Exception();
     }
 
-    private string AddLine()
+    private string AddTransportBelt()
     {
-      Enviroment line = new Line(new Position(Orientation.Right, new Coordinates(startLine, 5)));
-      line.Draw = new XamlDraw(GlobalSetting.Line.DeepCopy(), line);
-      map.Add(line);
+      TransportBelt transportBelt = Factory.CreateTransportBelt(startLine);
+      map.Add(transportBelt);
 
       startLine++;
 
-      return string.Format("{0} - ADD LINE", line);
+      return string.Format("{0} - ADD Transport belt", transportBelt);
     }
 
     private string Restart()
     {
       MainGrid.Children.Clear();
-      map = new Map(20, 20);
+      //map = new Map(20, 20);
+      map = new Map(GlobalSetting.MapSizeX, GlobalSetting.MapSizeY);
       map.Draw = new MapXaml(MainGrid);
 
-      robot = RobotFactory.CreateRobot(map.GetFreePosition(), "Twonky", false); //new XamlRobot("Twonky", new Position(Orientation.Down, 5, 5), GlobalSetting.RobotTemplate.DeepCopy());
+      robot = Factory.CreateRobot(map.GetRandomPosition(true), "Twonky", false);
       robot.Player = true;
       map.Add(robot);
       return "RESTART";
@@ -154,32 +149,60 @@ namespace Roborallye
 
     private string AddWall()
     {
-      Random nh = new Random();
-      Coordinates c = new Coordinates(nh.Next(0, map.MaxX), nh.Next(0, map.MaxY));
-      Wall wall = new Wall(new Position(Orientation.Up.Random(), c));
-      wall.Draw = new XamlDraw(GlobalSetting.WallTemplate.DeepCopy(), wall);
-      //XamlWall wall = new Xaml(c, new Orientation().Random(), GlobalSetting.WallTemplate.DeepCopy());
-      map.AddWall(wall);
+      Wall wall = Factory.CreateWall(map.GetRandomPosition(false));
+      map.Add(wall);
 
       return string.Format("{0} - ADD WALL", wall);
     }
 
     private string AddRobot()
     {
-      Position c = map.GetFreePosition();
-      Robot r = RobotFactory.CreateRobot(c, "XXX");
+      Position c = map.GetRandomPosition(true);
+      Robot r = Factory.CreateRobot(map.GetRandomPosition(true), "XXX");
       map.Add(r);
       return string.Format("{0} - ADD ROBOT", r.Name);
     }
+
+    private string AddTarget()
+    {
+      Target target = Factory.CreateTarget(map.GetRandomPosition(true));
+      map.Add(target);
+
+      return string.Format("{0} - ADD Target", target);
+    }
   }
 
-  internal static class RobotFactory
+  internal static class Factory
   {
-    public static Robot CreateRobot(Position position, string name, bool random = true)
+    public static Robot CreateRobot(Position position, string name, bool randomColor = true)
     {
       Robot robot = new Robot(name, position);
-      robot.Draw = new XamlDraw(GlobalSetting.RobotTemplate.DeepCopy(random), robot);
+      robot.Draw = new XamlDraw(GlobalSetting.RobotTemplate.DeepCopy(randomColor), robot);
       return robot;
+    }
+
+    public static Wall CreateWall(Position position)
+    {
+      Wall wall = new Wall(position);
+      wall.Draw = new XamlDraw(GlobalSetting.WallTemplate.DeepCopy(), wall);
+
+      return wall;
+    }
+
+    public static TransportBelt CreateTransportBelt(int startLine)
+    {
+      TransportBelt transportBelt = new TransportBelt(new Position(new Coordinates(startLine, 5), Orientation.Right));
+      transportBelt.Draw = new XamlDraw(GlobalSetting.TransportBelt.DeepCopy(), transportBelt);
+      
+      return transportBelt;
+    }
+
+    public static Target CreateTarget(Position position)
+    {
+      Target target = new Target(position.Coordinates, 0);
+      target.Draw = new XamlDraw(GlobalSetting.TargetTemplate.DeepCopy(), target);
+
+      return target;
     }
   }
 }

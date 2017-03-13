@@ -11,18 +11,18 @@ using Orientation = RoborallyLogic.Orientation;
 
 namespace Roborallye
 {
-  class XamlLine : RoborallyLogic.Line, IXamlDraw
+  class XamlTransportBelt : TransportBelt, IXamlDraw
   {
-    public XamlLine(Position position) : base(position) { }
+    public XamlTransportBelt(Position position) : base(position) { }
 
-    public XamlLine(int x, int y, Orientation orientation, Grid deepCopy) : base(x, y, orientation)
+    public XamlTransportBelt(int x, int y, Orientation orientation, Grid deepCopy) : base(x, y, orientation)
     {
       Template = deepCopy;
     }
 
     public Grid Template { get; set; }
 
-    public void SynchronizacePosition()
+    public override void SynchronizacePosition()
     {
       Template.Margin = new Thickness(GlobalSetting.Rectangle.Width * X, GlobalSetting.Rectangle.Height * Y, 0, 0);
 

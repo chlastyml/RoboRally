@@ -28,6 +28,12 @@ namespace Roborallye
         {
           resultGrid.Children.Add(rec.DeepCopy(random));
         }
+
+        TextBlock textBlock = child as TextBlock;
+        if (textBlock != null)
+        {
+          resultGrid.Children.Add(textBlock.DeepCopy());
+        }
       }
 
       return resultGrid;
@@ -48,6 +54,24 @@ namespace Roborallye
       rectangle.LayoutTransform = source.LayoutTransform;
 
       return rectangle;
+    }
+
+    public static TextBlock DeepCopy(this TextBlock source)
+    {
+      TextBlock textBlock = new TextBlock();
+      textBlock.Width = source.Width;
+      textBlock.Height = source.Height;
+      textBlock.Margin = new Thickness(source.Margin.Left, source.Margin.Top, source.Margin.Right, source.Margin.Bottom);
+      textBlock.VerticalAlignment = source.VerticalAlignment;
+      textBlock.HorizontalAlignment = source.HorizontalAlignment;
+      textBlock.LayoutTransform = source.LayoutTransform;
+
+      textBlock.Text = source.Text;
+      textBlock.FontSize = source.FontSize;
+
+      //TODO: doplnit dalsí vlastnosti
+
+      return textBlock;
     }
 
     private static Brush PickBrush()

@@ -31,9 +31,16 @@ namespace Roborallye
       }
     }
 
-    public void Add()
+    public void Add(bool isInsert = false)
     {
-      GlobalSetting.MainGrid.Children.Add(Template);
+      if (isInsert)
+      {
+        GlobalSetting.MainGrid.Children.Insert(GlobalSetting.MapSizeX * GlobalSetting.MapSizeY, Template);
+      }
+      else
+      {
+        GlobalSetting.MainGrid.Children.Add(Template);
+      }
       SynchronizacePosition();
     }
 

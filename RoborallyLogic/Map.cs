@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 
 namespace RoborallyLogic
 {
@@ -12,16 +14,16 @@ namespace RoborallyLogic
     {
       Walls = new List<Wall>();
       Robots = new List<Robot>();
-      EnviromentMoves = new List<Enviroment>();
-      Goals = new List<Goal>();
+      Enviroments = new List<Enviroment>();
+      Targets = new List<Target>();
       MaxX = x;
       MaxY = y;
     }
 
     protected IList<Robot> Robots { get; set; }
     protected IList<Wall> Walls { get; set; }
-    protected IList<Enviroment> EnviromentMoves { get; set; }
-    protected IList<Goal> Goals { get; set; }
+    protected IList<Enviroment> Enviroments { get; set; }
+    protected IList<Target> Targets { get; set; }
 
     public IMapDraw Draw
     {
@@ -38,27 +40,34 @@ namespace RoborallyLogic
 
     public virtual void Add(LogicObject logicObject)
     {
-      if (logicObject is Robot)
+      if (logicObject == null)
       {
-        AddRobot((Robot) logicObject);
+        throw new ArgumentNullException();
       }
 
+      // Zda přidáváme robota
+      if (logicObject is Robot)
+      {
+        AddRobot((Robot)logicObject);
+      }
+
+      // Zda přidáváme zeď
       if (logicObject is Wall)
       {
         AddWall((Wall) logicObject);
       }
 
+      // Zda přidáváme prvky prostředí
       if (logicObject is Enviroment)
       {
         AddEnviromental((Enviroment) logicObject);
       }
 
-      if (logicObject is Goal)
+      // Zda přidáváme cíl
+      if (logicObject is Target)
       {
-        AddGoal((Goal) logicObject);
+        AddTarget((Target) logicObject);
       }
-
-      logicObject.Add();
     }
 
     public void Remove(LogicObject logicObject)
@@ -78,63 +87,60 @@ namespace RoborallyLogic
         RemoveEnviromental((Enviroment) logicObject);
       }
 
-      if (logicObject is Goal)
+      if (logicObject is Target)
       {
-        RemoveGoal((Goal) logicObject);
+        RemoveTarget((Target) logicObject);
       }
 
       logicObject.Remove();
     }
-
-    public string GetRobotByIndex(int i)
-    {
-      return i < Robots.Count ? Robots[i].ToString() : string.Empty;
-    }
-
+    
     public bool TryGetRobot(Coordinates coordinates, out Robot robot)
     {
       robot = Robots.FirstOrDefault(r => r.Position.Coordinates.Equals(coordinates));
       return robot != null;
     }
 
-    public bool MovingRobot(Coordinates newCoordinates, Orientation orientation, bool ignoreEnviroment = false)
+    public bool MovingRobot(Coordinates newCoordinates, Orientation orientation, bool isEnviromental = false)
     {
-      if (ignoreEnviroment) return IsOnMap(newCoordinates);
+      //if (ignoreEnviroment) return IsOnMap(newCoordinates);
 
       Wall wall = Walls.FirstOrDefault(w =>
-        (w.Coordinates.Equals(newCoordinates) && w.Coordinates.GetOneNearby(w.Orientation).Equals(newCoordinates.GetOneNearby(orientation.Oposite()))) ||
-        (w.Coordinates.GetOneNearby(w.Orientation).Equals(newCoordinates) && w.Coordinates.Equals(newCoordinates.GetOneNearby(orientation.Oposite()))));
+        (w.Coordinates.Equals(newCoordinates) &&
+         w.Coordinates.GetOneNearby(w.Orientation).Equals(newCoordinates.GetOneNearby(orientation.Oposite()))) ||
+        (w.Coordinates.GetOneNearby(w.Orientation).Equals(newCoordinates) &&
+         w.Coordinates.Equals(newCoordinates.GetOneNearby(orientation.Oposite()))));
 
       if (wall != null) return false;
 
       Robot robot;
       if (TryGetRobot(newCoordinates, out robot))
-        return robot.Move(orientation);
+        return robot.Move(orientation, isEnviromental);
       return IsOnMap(newCoordinates);
     }
 
-    public bool IsOnMap(Coordinates coordinates)
+    private bool IsOnMap(Coordinates coordinates)
     {
       if (0 <= coordinates.X && coordinates.X < MaxX && 0 <= coordinates.Y && coordinates.Y < MaxY)
         return true;
       return false;
     }
 
-    public Position GetFreePosition()
+    public Position GetRandomPosition(bool mustBeFreePosition)
     {
       // TODO: optimalizovat
       while (true)
       {
         Random nh = new Random();
-        Coordinates c = new Coordinates(nh.Next(0, MaxX), nh.Next(0, MaxY));
-        if (GetRobotByCoordinates(c) == null)
+        Coordinates coordinates = new Coordinates(nh.Next(0, MaxX), nh.Next(0, MaxY));
+        if (GetRobotByCoordinates(coordinates) == null || !mustBeFreePosition)
         {
-          return new Position(Orientation.Up.Random(), c);
+          return new Position(coordinates, Helper.RandomOrientation);
         }
       }
     }
 
-    public Robot GetRobotFromRobot(Position position, int wallPenetration = 0)
+    public Robot GetRobotFromRobotOnLine(Position position, int wallPenetration = 0)
     {
       // Výpočet souřadnic dalšího kontrolovaného pole
       Position nextPosition = position.NextPosition();
@@ -153,7 +159,7 @@ namespace RoborallyLogic
           {
             return null;
           }
-          return GetRobotFromRobot(nextPosition, wallPenetration - 1);
+          return GetRobotFromRobotOnLine(nextPosition, wallPenetration - 1);
         }
         if (wall.Orientation.Equals(position.Orientation))
         {
@@ -161,17 +167,16 @@ namespace RoborallyLogic
           {
             return GetRobotByCoordinates(nextPosition.Coordinates);
           }
-          return GetRobotFromRobot(nextPosition, wallPenetration - 1);
+          return GetRobotFromRobotOnLine(nextPosition, wallPenetration - 1);
         }
       }
-      return GetRobotByCoordinates(nextPosition.Coordinates) ?? GetRobotFromRobot(nextPosition, wallPenetration);
+      return GetRobotByCoordinates(nextPosition.Coordinates) ?? GetRobotFromRobotOnLine(nextPosition, wallPenetration);
     }
 
-    public virtual void AddWall(Wall wall)
+    private void AddWall(Wall wall)
     {
       wall.Map = this;
       Walls.Add(wall);
-
       wall.Add();
     }
 
@@ -179,17 +184,18 @@ namespace RoborallyLogic
     {
       robot.Map = this;
       Robots.Add(robot);
+      robot.Add();
     }
 
     private void RemoveRobot(Robot robot)
     {
       Robots.Remove(robot);
+      robot.Remove();
     }
 
     private void RemoveWall(Wall wall)
     {
       Walls.Remove(wall);
-
       wall.Remove();
     }
 
@@ -200,41 +206,54 @@ namespace RoborallyLogic
         robot.IsMovedEnvironment = false;
       }
 
-      foreach (Enviroment enviromentMove in EnviromentMoves)
+      foreach (Enviroment enviroment in Enviroments)
       {
-        enviromentMove.Move(
-          Robots.FirstOrDefault(
-            r => r.Position.Coordinates.Equals(enviromentMove.Position.Coordinates) && !r.IsMovedEnvironment));
+        Robot robot;
+        
+        if(TryGetRobot(enviroment.Coordinates, out robot) && !robot.IsMovedEnvironment)
+        {
+          enviroment.Move(robot);
+        }
       }
     }
 
     private void AddEnviromental(Enviroment enviroment)
     {
       enviroment.Map = this;
-      EnviromentMoves.Add(enviroment);
+      Enviroments.Add(enviroment);
+      enviroment.Add(true);
     }
 
     private void RemoveEnviromental(Enviroment enviroment)
     {
-      EnviromentMoves.Remove(enviroment);
+      Enviroments.Remove(enviroment);
+      enviroment.Remove();
     }
 
-    private void AddGoal(Goal goal)
+    private void AddTarget(Target target)
     {
-      goal.Map = this;
-      Goals.Add(goal);
+      target.Map = this;
+      Targets.Add(target);
+      target.Add();
     }
 
-    private void RemoveGoal(Goal goal)
+    private void RemoveTarget(Target target)
     {
-      Goals.Remove(goal);
+      Targets.Remove(target);
+      target.Remove();
     }
 
     public void UpdateRobots()
     {
-      foreach (Goal goal in Goals)
+      foreach (Target target in Targets)
       {
+        target.DoSomething(Robots.FirstOrDefault(robot => robot.Coordinates.Equals(target.Coordinates)));
       }
+    }
+
+    public bool IsSomeRobotOnPosition(Coordinates coordinates)
+    {
+      return Robots.Any(robot => robot.Coordinates.Equals(coordinates));
     }
 
     private Wall GetWallByCoordinates(Coordinates nextCoordinates)
@@ -249,7 +268,30 @@ namespace RoborallyLogic
 
     public string GetRobotsStats()
     {
-      return string.Format("{0}", string.Join(Environment.NewLine, Robots.Select(r => r.ToString())));
+      StringBuilder sb = new StringBuilder();
+
+      if (Robots != null && Robots.Count != 0)
+      {
+        sb.AppendFormat("{0}{1}", string.Format("ROBOTS:{0}{1}{0}", Environment.NewLine, string.Join(Environment.NewLine, Robots.Select(r => r.ToString()))), Environment.NewLine);
+      }
+
+      if (Walls != null && Walls.Count != 0)
+      {
+        sb.AppendFormat("{0}{1}", string.Format("WALLS:{0}{1}{0}", Environment.NewLine, string.Join(Environment.NewLine, Walls.Select(r => r.ToString()))), Environment.NewLine);
+      }
+
+      if (Enviroments != null && Enviroments.Count != 0)
+      {
+        sb.AppendFormat("{0}{1}", string.Format("ENVIROMENTALS:{0}{1}{0}", Environment.NewLine, string.Join(Environment.NewLine, Enviroments.Select(r => r.ToString()))), Environment.NewLine);
+      }
+
+      if (Targets != null && Targets.Count != 0)
+      {
+        sb.AppendFormat("{0}{1}", string.Format("TARGETS:{0}{1}{0}", Environment.NewLine, string.Join(Environment.NewLine, Targets.Select(r => r.ToString()))), Environment.NewLine);
+      }
+
+
+      return sb.ToString();
     }
   }
 }

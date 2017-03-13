@@ -8,30 +8,16 @@ namespace RoborallyLogic
     int MaxX { get; set; }
     int MaxY { get; set; }
 
-    string GetRobotByIndex(int i);
     bool TryGetRobot(Coordinates coordinates, out Robot robot);
-    bool MovingRobot(Coordinates newCoordinates, Orientation orientation, bool ignoredEnviroment = false);
-    bool IsOnMap(Coordinates coordinates);
-    Robot GetRobotFromRobot(Position position, int wallPenetration = 0);
+    bool MovingRobot(Coordinates newCoordinates, Orientation orientation, bool isEnviromental = false);
+    Robot GetRobotFromRobotOnLine(Position position, int wallPenetration = 0);
 
     void Add(LogicObject logicObject);
     void Remove(LogicObject logicObject);
 
-    //void AddRobot(Robot robot);
-    //void RemoveRobot(Robot robot);
-
-    //void AddWall(Wall wall);
-    //void RemoveWall(Wall wall);
-
-    //void EnviromentMove();
-    //void AddEnviromentalMove(IEnviroment enviromentMove);
-    //void RemoveEnviromentalMove(IEnviroment enviromentMove);
-
-    //void AddGoal(Goal goal);
-    //void RemoveGoal(Goal goal);
-    //void UpdateRobots();
-
-    Position GetFreePosition();
+    Position GetRandomPosition(bool mustBeFreePosition = true);
+    void UpdateRobots();
+    bool IsSomeRobotOnPosition(Coordinates coordinates);
   }
 
   public interface IMapDraw
@@ -43,7 +29,7 @@ namespace RoborallyLogic
   {
     void SynchronizacePosition();
 
-    void Add();
+    void Add(bool isInsert = false);
     void Remove();
   }
 

@@ -41,10 +41,11 @@
   <ItemGroup>
     <Compile Include="AbstractDraw.cs" />
     <Compile Include="Enviroment.cs" />
-    <Compile Include="Goal.cs" />
+    <Compile Include="Target.cs" />
+    <Compile Include="Helper.cs" />
     <Compile Include="Instruction\Instruction.cs" />
     <Compile Include="Instruction\RobotInstruction.cs" />
-    <Compile Include="Line.cs" />
+    <Compile Include="TransportBelt.cs" />
     <Compile Include="Weapons.cs" />
     <Compile Include="Coordinates.cs" />
     <Compile Include="Interfaces.cs" />

@@ -55,8 +55,8 @@
     </ApplicationDefinition>
     <Compile Include="Extensions.cs" />
     <Compile Include="GlobalSetting.cs" />
-    <Compile Include="XamlGoal.cs" />
-    <Compile Include="XamlLine.cs" />
+    <Compile Include="XamlTarget.cs" />
+    <Compile Include="XamlTransportBelt.cs" />
     <Compile Include="XamlMap.cs" />
     <Compile Include="XamlRobot.cs" />
     <Page Include="MainWindow.xaml">
@@ -89,6 +89,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
