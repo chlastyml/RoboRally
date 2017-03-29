@@ -27,6 +27,7 @@ namespace Roborallye
       GlobalSetting.WallTemplate = WallGrid;
       GlobalSetting.TransportBelt = LineGrid;
       GlobalSetting.TargetTemplate = TargetGrid;
+      GlobalSetting.KeyHelper = new KeyHelper();
       Restart();
     }
 
@@ -50,8 +51,8 @@ namespace Roborallye
         case Key.W: robot.Weapon = new Cannon(); command = string.Format("{0} - Cannon", robot.Name); break;
         case Key.E: robot.Weapon = new Ultimate(); command = string.Format("{0} - Ultimate", robot.Name); break;
         case Key.R: robot.Weapon = new Penetrator(); command = string.Format("{0} - Penetrator", robot.Name); break;
-        case Key.Escape: if (_tread !=null && _tread.IsAlive) ExecuteInstructions(); Close(); return;
-        case Key.L: _instrukce = !_instrukce; command = "Instrukce : " + !_instrukce; break;
+        case Key.Escape: if (_tread !=null && _tread.IsAlive) ExecuteInstructions(); CloseApplication(); return;
+        case Key.L: _instrukce = !_instrukce; command = "Instrukce : " + _instrukce; break;
         case Key.Enter: command = ExecuteInstructions(); break;
       }
 
@@ -79,6 +80,12 @@ namespace Roborallye
       CommandTextBlock.Text = string.Format("{0}{1}{1}{2}", command, Environment.NewLine, map.GetRobotsStats());
     }
 
+    private void CloseApplication()
+    {
+      Close();
+      GlobalSetting.KeyHelper.Close();
+    }
+
     private bool _instructTread = true;
     private Thread _tread;
 
@@ -89,7 +96,6 @@ namespace Roborallye
 
       return "Vyhodnocení";
     }
-
 
     private string ExecuteInstructions()
     {
@@ -237,6 +243,11 @@ namespace Roborallye
       map.Add(target);
 
       return string.Format("{0} - ADD Target", target);
+    }
+
+    private void Button_Click(object sender, RoutedEventArgs e)
+    {
+      GlobalSetting.KeyHelper.OpenWindow();
     }
   }
 

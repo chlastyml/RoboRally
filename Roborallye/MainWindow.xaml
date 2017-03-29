@@ -33,6 +33,8 @@
                 <TextBlock HorizontalAlignment="Center" Height="13" TextWrapping="Wrap" Text="1" VerticalAlignment="Center" Width="20" FontWeight="Bold" TextAlignment="Center" Margin="0,2,0,5"/>
             </Grid>
         </Grid>
-        <TextBlock Name="CommandTextBlock" HorizontalAlignment="Right" Height="309" Margin="0,10,10,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="246" FontSize="10"/>
+        
+        <TextBlock Name="CommandTextBlock" HorizontalAlignment="Right" Height="369" Margin="0,50,10,0" TextWrapping="Wrap" Text="TextBlock" VerticalAlignment="Top" Width="246" FontSize="10"/>
+        <Button Content="Info" HorizontalAlignment="Left" Height="35" Margin="436,10,0,0" VerticalAlignment="Top" Width="108" Click="Button_Click"/>
     </Grid>
 </Window>

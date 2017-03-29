@@ -2,16 +2,6 @@ namespace RoborallyLogic
 {
   public class Robot : LogicObject, IFireAble, IMoveAble
   {
-    //public Robot(string name, Position position, bool player = false) : this(9, 3, name, position, player)
-    //{
-    //  Player = player;
-    //  Name = name;
-    //  Position = position;
-    //  LifeTokenCount = 1;
-    //  DamagedCount = 9;
-    //  StartPosition = (Position) position.Clone();
-    //}
-
     public Robot(int damagedCount, int lifeTokenCount, string name, Position position, bool player = false) : base(position)
     {
       DamagedCount = damagedCount;

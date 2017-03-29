@@ -55,6 +55,10 @@
     </ApplicationDefinition>
     <Compile Include="Extensions.cs" />
     <Compile Include="GlobalSetting.cs" />
+    <Compile Include="KeyHelper.cs" />
+    <Compile Include="StatusWindow.xaml.cs">
+      <DependentUpon>StatusWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="XamlTarget.cs" />
     <Compile Include="XamlTransportBelt.cs" />
     <Compile Include="XamlMap.cs" />
@@ -71,6 +75,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="StatusWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

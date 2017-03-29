@@ -12,6 +12,8 @@ namespace Roborallye
   {
     public static double Size { get { return _rectangle.Width; } }
 
+    public static KeyHelper KeyHelper { get; set; }
+
     private static Rectangle _rectangle;
 
     public static Rectangle Rectangle
